@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 from .feature import Feature
@@ -9,19 +10,23 @@ from .feature_vector import FeatureVector
 class Model:
     """Represents one of our models."""
 
-    def __init__(self, name, features):
+    def __init__(self, name, features, sklearn_model):
         """
         name: name of this model, for debugging purposes
         features: list[Feature] for this model
         """
         self.name = name
         self.features = features
-        self._sklearn_model = None
+        self._sklearn_model = sklearn_model
 
     @property
     def sklearn_model(self):
         if self._sklearn_model is None:
+            raise ValueError("Input model Name type")
+        elif self._sklearn_model == "LogisticRegression":
             self._sklearn_model = LogisticRegression()
+        elif self._sklearn_model == "RandomForestClassifier":
+            self._sklearn_model= RandomForestClassifier()
         return self._sklearn_model
 
     @classmethod
