@@ -1,11 +1,12 @@
 import numpy as np
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 from .feature import Feature
 from .feature_vector import FeatureVector
+from .game_context import GameContext
 
 
 class Model:
@@ -37,7 +38,7 @@ class Model:
         return cls('default_linear',
                    [Feature('ppg', lambda df: df['score'].mean())])
 
-    def get_vector(self, season, team, dm):
+    def get_vector(self, season, team, other, dm):
         """
         season: Season object
         team: Team object
@@ -45,11 +46,10 @@ class Model:
         returns: FeatureVector filtered on season and team, aggregated
             accordingly
         """
-        filt = dm.get_team_in_season(season, team)
         # compute each feature and append to result dict
         result = {}
         for f in self.features:
-            result[f] = f.compute(filt)
+            result[f] = f.compute(dm, team, GameContext(team, other, season))
         return FeatureVector(result)
 
     def get_X_y(self, trainer):
@@ -58,8 +58,10 @@ class Model:
         # y is 1/0 values
         data_raw = trainer.dm.get_training_data()
         for result in data_raw:
-            vect_a = self.get_vector(result.season, result.winner, trainer.dm)
-            vect_b = self.get_vector(result.season, result.loser, trainer.dm)
+            vect_a = self.get_vector(result.season, result.winner,
+                                     result.loser, trainer.dm)
+            vect_b = self.get_vector(result.season, result.loser,
+                                     result.winner, trainer.dm)
 
             vect_combo_a = self.combine_vectors(vect_a, vect_b)
             X.append(vect_combo_a.to_list())
@@ -77,6 +79,7 @@ class Model:
         # 2. Split data
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42)
+        import pdb; pdb.set_trace()
         # 3. Fit on training
         self.sklearn_model.fit(X_train, y_train)
         # 3. Evaluate on testing
