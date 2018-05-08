@@ -5,7 +5,7 @@ class Feature:
     def __init__(self, name, compute_func, **kwargs):
         """
         name: string of name describing this feature
-        compute_func: df (team, season) -> numeric value
+        compute_func: df (Data, team, season, context) -> numeric value
         """
         self.name = name
         self.func = compute_func

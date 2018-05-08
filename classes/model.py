@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 from .feature import Feature
@@ -10,23 +11,25 @@ from .feature_vector import FeatureVector
 class Model:
     """Represents one of our models."""
 
-    def __init__(self, name, features, sklearn_model):
+    def __init__(self, name, features, model_type):
         """
         name: name of this model, for debugging purposes
         features: list[Feature] for this model
+        model_type: .
         """
         self.name = name
         self.features = features
-        self._sklearn_model = sklearn_model
+        self.model_type = model_type
+        self._sklearn_model = None
 
     @property
     def sklearn_model(self):
-        if self._sklearn_model is None:
-            raise ValueError("Input model Name type")
-        elif self._sklearn_model == "LogisticRegression":
+        if self._sklearn_model is not None:
+            return self._sklearn_model
+        elif self.model_type == "LogisticRegression":
             self._sklearn_model = LogisticRegression()
-        elif self._sklearn_model == "RandomForestClassifier":
-            self._sklearn_model= RandomForestClassifier()
+        elif self.model_type == "RandomForestClassifier":
+            self._sklearn_model = RandomForestClassifier()
         return self._sklearn_model
 
     @classmethod
@@ -77,8 +80,10 @@ class Model:
         # 3. Fit on training
         self.sklearn_model.fit(X_train, y_train)
         # 3. Evaluate on testing
+        y_pred = self.sklearn_model.predict(X_test)
         # 4. Return evaluation result
-        return self.sklearn_model.score(X_test, y_test)
+        return classification_report(y_test, y_pred)
+        # score = self.sklearn_model.score(X_test, y_test)
 
     def predict(self, a, b, runner):
         """
@@ -90,6 +95,7 @@ class Model:
         vect_a = self.get_vector(runner.season, a, runner.dm)
         vect_b = self.get_vector(runner.season, b, runner.dm)
         vect_combo = self.combine_vectors(vect_a, vect_b)
+        raise ValueError("not implemented")
 
     def combine_vectors(self, a, b):
         """
