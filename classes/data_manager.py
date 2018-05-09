@@ -50,7 +50,13 @@ class DataManager:
         reg_season = reg[reg.Season == season.yr]
         reg_season_team = reg_season[(reg.Wteam == team.team_id) | (
             reg.Lteam == team.team_id)]
-        return self.team_win_lose_score_helper(reg_season_team, team)
+        # return self.team_win_lose_score_helper(reg_season_team, team)
+        return reg_season_team
+
+    def get_mean_stat(self, df, team, column):
+        win = df[df.Wteam == team.team_id]
+        lose = df[df.Lteam == team.team_id]
+        return win['W' + column].append(lose['L' + column]).mean()
 
     def get_training_data(self):
         """
@@ -76,8 +82,8 @@ class DataManager:
         returns: updated df with removing 'W'/'L' from relevant stats
         """
         rename_cols = {
-            'team', 'score', 'fgm', 'fga', 'fgm3', 'fga3', 'ftm', 'fta', 'or',
-            'dr', 'ast', 'to', 'stl', 'blk', 'pf'
+            'score', 'fgm', 'fga', 'fgm3', 'fga3', 'ftm', 'fta', 'or',
+            'dr', 'ast', 'to', 'stl', 'blk', 'pf',  # team
         }
 
         def get_rename_dict(mode):
@@ -89,6 +95,8 @@ class DataManager:
                 result[mode + col] = col
             # Extra cols
             result['Season'] = 'season'
+            result['Wteam'] = 'Wteam'
+            result['Lteam'] = 'Lteam'
             return result
 
         def internal_update_func(row):

@@ -1,3 +1,6 @@
+from .feature import Feature
+
+
 class FeatureVector:
     """Represents a vector of features. Immutable."""
 
@@ -17,6 +20,13 @@ class FeatureVector:
         for k in self.feature_dict:
             final[k] = self[k] - other[k]
         return FeatureVector(final)
+
+    def concat(self, other):
+        """combines self and other into new vect"""
+        result = {**self.feature_dict}
+        for k, v in other.feature_dict.items():
+            result[Feature(str(k) + '_other', k.func, **k.kwargs)] = v
+        return FeatureVector(result)
 
     def to_list(self):
         """uses sorted key order so it is deterministic"""

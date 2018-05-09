@@ -12,7 +12,7 @@ from .game_context import GameContext
 class Model:
     """Represents one of our models."""
 
-    def __init__(self, name, features, model_type):
+    def __init__(self, name, features, model_type, mode='sub'):
         """
         name: name of this model, for debugging purposes
         features: list[Feature] for this model
@@ -22,6 +22,7 @@ class Model:
         self.features = features
         self.model_type = model_type
         self._sklearn_model = None
+        self.mode = mode
 
     @property
     def sklearn_model(self):
@@ -105,4 +106,7 @@ class Model:
         a, b: FeatureVector's
         returns: combination of a and b
         """
-        return a - b
+        if self.mode == 'sub':
+            return a - b
+        elif self.mode == 'concat':
+            return a.concat(b)
