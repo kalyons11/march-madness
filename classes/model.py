@@ -79,7 +79,7 @@ class Model:
         # 2. Split data
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         # 3. Fit on training
         self.sklearn_model.fit(X_train, y_train)
         # 3. Evaluate on testing
