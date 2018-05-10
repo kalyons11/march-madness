@@ -32,7 +32,8 @@ class DataManager:
         tourney = pd.read_csv(path_join(self.data_dir, Config.TOURNEY_FNAME))
         seeds = pd.read_csv(path_join(self.data_dir, Config.SEEDS_FNAME))
         slots = pd.read_csv(path_join(self.data_dir, Config.SLOTS_FNAME))
-        return Data(teams, reg, tourney, seeds, slots, key='value')
+        sos = pd.read_csv(path_join(self.data_dir, Config.SLOTS_FNAME))
+        return Data(teams, reg, tourney, seeds, slots, sos, key='value')
 
     # QUERIES
 

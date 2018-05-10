@@ -2,27 +2,19 @@
 """
 
 import sys
+from functools import partial
 sys.path.append('..')
+
 
 from classes import *
 
 
-def f1_func(dm, team, context, **kwargs):
+def mean_func(dm, team, context, column, **kwargs):
     filt = dm.get_team_in_season(context.season, team)
-    return dm.get_mean_stat(df=filt, team=team, column='score')
+    return dm.get_mean_stat(df=filt, team=team, column=column)
 
 
-def f2_func(dm, team, context, **kwargs):
-    filt = dm.get_team_in_season(context.season, team)
-    return dm.get_mean_stat(df=filt, team=team, column='to')
-
-
-def f3_func(dm, team, context, **kwargs):
-    filt = dm.get_team_in_season(context.season, team)
-    return dm.get_mean_stat(df=filt, team=team, column='fgm')
-
-
-def win_func(dm, team, context, **kwargs):
+def win_pct_func(dm, team, context, **kwargs):
     # Filter on the team
     filt = dm.get_team_in_season(context.season, team)
 
@@ -33,12 +25,95 @@ def win_func(dm, team, context, **kwargs):
     return wins.shape[0] / filt.shape[0]
 
 
-# average margin of victory
+def fg_pct_func(dm, team, context, **kwargs):
+    # Take fga and fgm and divide
+    fga = mean_func(dm, team, context, 'fga', **kwargs)
+    fgm = mean_func(dm, team, context, 'fgm', **kwargs)
+    return fgm / fga
 
-# include the seed
+
+def ft_pct_func(dm, team, context, **kwargs):
+    # Take fta and ftm and divide
+    fta = mean_func(dm, team, context, 'fta', **kwargs)
+    ftm = mean_func(dm, team, context, 'ftm', **kwargs)
+    return ftm / fta
 
 
-def previous_matchups_with_postseason(dm, team, context, **kwargs):
+# include the seed - bins
+
+def parse_seed(seed_str):
+    """converts 3-4 char seed string to integer value"""
+    return int(seed_str[1:3])
+
+
+def seed_func(dm, team, context, **kwargs):
+    """return the seed of this team in the given year"""
+    seeds = dm.data.seeds
+    team_id = team.team_id
+    yr = context.season.yr
+
+    this = seeds[(seeds.Season == yr) & (seeds.Team == team_id)]
+
+    this_seed = this.Seed.iloc[0]
+
+    return parse_seed(this_seed)
+
+# strength of schedule data
+
+
+def sos_func(dm, team, context, **kwargs):
+    """return the sos of this team in the given year"""
+    sos = dm.data.sos
+    team_id = team.team_id
+    yr = context.season.yr
+
+    this = sos[(sos.year == yr) & (sos.team_id == team_id)]
+
+    if this.shape[0] == 0:
+        return 0
+
+    this_sos = this.sos.iloc[0]
+
+    return this_sos
+
+
+def rpi_func(dm, team, context, **kwargs):
+    """return the sos of this team in the given year"""
+    sos = dm.data.sos
+    team_id = team.team_id
+    yr = context.season.yr
+
+    this = sos[(sos.year == yr) & (sos.team_id == team_id)]
+
+    if this.shape[0] == 0:
+        return 0
+
+    this_rpi = this.rpi.iloc[0]
+
+    return this_rpi
+
+
+# ncaa tourney history
+
+
+def tourney_games_func(dm, team, context, **kwargs):
+    """return the number of tournament games in all previous years
+    played by this team"""
+    tour = dm.data.tourney
+    me = team.team_id
+    yr = context.season.yr
+
+    this_team = tour[((tour.Wteam == me) | (tour.Lteam == me)) &
+                     (tour.Season < yr)]
+
+    return this_team.shape[0]
+
+
+"""'score', 'fgm', 'fga', 'fgm3', 'fga3', 'ftm', 'fta', 'or',
+            'dr', 'ast', 'to', 'stl', 'blk', 'pf',  # team"""
+
+
+def prev_matchups_func(dm, team, context, **kwargs):
     # Get the other team
     me = team.team_id
     other = context.other.team_id
@@ -63,22 +138,48 @@ def previous_matchups_with_postseason(dm, team, context, **kwargs):
 
 def main():
     # Create features
-    f1 = Feature('score', f1_func, key='value')
-    f2 = Feature('to', f2_func)
-    f3 = Feature('fgm', f3_func)
-    f4 = Feature('win_pct', win_func)
-    f6 = Feature('previous_matchups_with_postseason_5',
-                 previous_matchups_with_postseason)
+    score = Feature('score', partial(mean_func, column='score'))
+    to = Feature('to', partial(mean_func, column='to'))
+    blk = Feature('blk', partial(mean_func, column='blk'))
+    o_reb = Feature('o_reb', partial(mean_func, column='or'))
+    d_reb = Feature('d_reb', partial(mean_func, column='dr'))
+    ast = Feature('ast', partial(mean_func, column='ast'))
+    stl = Feature('stl', partial(mean_func, column='stl'))
+    win_pct = Feature('win_pct', win_pct_func)
+    fg_pct = Feature('fg_pct', fg_pct_func)
+    ft_pct = Feature('ft_pct', ft_pct_func)
+    prev_matchups = Feature('prev_matchups', prev_matchups_func)
+    seed = Feature('seed', seed_func)
+    tourney_games = Feature('tourney_games', tourney_games_func)
+    sos = Feature('sos', sos_func)
+    rpi = Feature('rpi', rpi_func)
 
     # Create model
-    m = Model('base', [f1, f2, f3, f4, f6], "LogisticRegression",
-              mode="concat")
+    m = Model('base',
+              [score,
+               to,
+               blk,
+               o_reb,
+               d_reb,
+               win_pct,
+               prev_matchups,
+               fg_pct,
+               ft_pct,
+               ast,
+               stl,
+               seed,
+               tourney_games,
+               sos,
+               rpi],
+              'LogisticRegression')
 
     # Create trainer and run
     t = Trainer(m)
     result = t.run()
 
-    import pdb; pdb.set_trace()
+    print(result)
+
+    print("Features used:", m.features)
 
 
 if __name__ == '__main__':

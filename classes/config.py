@@ -5,6 +5,7 @@ class Config:
     TOURNEY_FNAME = 'TourneyDetailedResults.csv'
     SEEDS_FNAME = 'TourneySeeds.csv'
     SLOTS_FNAME = 'TourneySlots.csv'
+    SLOTS_FNAME = 'rpi_and_sos.csv'
 
     DEFAULT_DATA_DIR = '../data/'
 
