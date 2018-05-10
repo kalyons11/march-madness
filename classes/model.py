@@ -12,7 +12,8 @@ from .game_context import GameContext
 class Model:
     """Represents one of our models."""
 
-    def __init__(self, name, features, model_type, mode='sub'):
+    def __init__(self, name, features, model_type='LogisticRegression',
+                 mode='sub'):
         """
         name: name of this model, for debugging purposes
         features: list[Feature] for this model
@@ -94,12 +95,14 @@ class Model:
         a: Team a
         b: Team b
         runner: runner calling me
-        returns: output in [0, 1] range, P(a)
+        returns: 0/1 - 1 if a wins, 0 else
         """
-        vect_a = self.get_vector(runner.season, a, runner.dm)
-        vect_b = self.get_vector(runner.season, b, runner.dm)
+        vect_a = self.get_vector(runner.season, a, b, runner.dm)
+        vect_b = self.get_vector(runner.season, b, a, runner.dm)
         vect_combo = self.combine_vectors(vect_a, vect_b)
-        raise ValueError("not implemented")
+        X = [vect_combo.to_list()]
+        result = self._sklearn_model.predict(X)
+        return result[0]
 
     def combine_vectors(self, a, b):
         """

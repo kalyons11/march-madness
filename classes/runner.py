@@ -34,8 +34,6 @@ class Runner:
                         result.columns[0]: game_id,
                         result.columns[1]: prediction
                     }, ignore_index=True)
-                    break
-            break
         return result
 
     def run_pair(self, a, b):
