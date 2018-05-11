@@ -25,15 +25,16 @@ class Runner:
         # Get all teams in this season
         teams = self.dm.get_teams_in_season(self.season)
         # Iterate over all pairs
-        for a in teams:
-            for b in teams:
-                if a != b:
-                    game_id = self.get_game_id(a, b)
-                    prediction = self.run_pair(a, b)
-                    result = result.append({
-                        result.columns[0]: game_id,
-                        result.columns[1]: prediction
-                    }, ignore_index=True)
+        for i in range(len(teams)):
+            a = teams[i]
+            for j in range(i + 1, len(teams)):
+                b = teams[j]
+                game_id = self.get_game_id(a, b)
+                prediction = self.run_pair(a, b)
+                result = result.append({
+                    result.columns[0]: game_id,
+                    result.columns[1]: prediction
+                }, ignore_index=True)
         return result
 
     def run_pair(self, a, b):

@@ -16,6 +16,7 @@ class Main:
         if model is None:
             model = Model.default()
         for season in [2011, 2012, 2013]:
+            print(season)
             r = Runner(Season(season), model)
             current = r.run()
             result = result.append(current)

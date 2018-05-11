@@ -9,15 +9,18 @@ sys.path.append('..')
 
 from classes import Feature, Main, Model, Trainer
 
-from test import mean_func
+from test import seed_func, rpi_func
 
 
 def main():
     print('Feature creation...')
-    feat = Feature('score', partial(mean_func, column='score'))
+    feat = Feature('seed', seed_func)
 
     print('Model creation...')
-    m = Model('base', [feat])
+    m = Model('seed_and_rpi', [
+        Feature('seed', seed_func),
+        Feature('rpi', rpi_func)
+    ])
 
     print('Training model...')
     t = Trainer(m)

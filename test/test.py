@@ -52,9 +52,16 @@ def seed_func(dm, team, context, **kwargs):
     team_id = team.team_id
     yr = context.season.yr
 
+    # try:
     this = seeds[(seeds.Season == yr) & (seeds.Team == team_id)]
+    # except:
+    #     print('akjlsfjslkfjlksjflksjlfkjslfj')
+    #     import pdb; pdb.set_trace()
 
-    this_seed = this.Seed.iloc[0]
+    try:
+        this_seed = this.Seed.iloc[0]
+    except IndexError as e:
+        import pdb; pdb.set_trace()
 
     return parse_seed(this_seed)
 

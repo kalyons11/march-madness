@@ -38,13 +38,9 @@ class DataManager:
     # QUERIES
 
     def get_teams_in_season(self, season):
-        reg = self.data.reg
-        reg_season = reg[reg.Season == season.yr]
-        reg_season_teams_winners = reg_season.Wteam.unique()
-        reg_season_teams_losers = reg_season.Lteam.unique()
-        reg_season_teams_all = np.union1d(
-            reg_season_teams_winners, reg_season_teams_losers)
-        return map(lambda t: Team(t, self), reg_season_teams_all)
+        seeds = self.data.seeds
+        this_yr = seeds[seeds.Season == season.yr]
+        return list(map(lambda t: Team(t, self), this_yr.Team))
 
     def get_team_in_season(self, season, team):
         reg = self.data.reg

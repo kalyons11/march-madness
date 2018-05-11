@@ -1,7 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, roc_curve, auc
 from sklearn.model_selection import train_test_split
 
 from .feature import Feature
@@ -86,6 +87,8 @@ class Model:
         self.sklearn_model.fit(X_train, y_train)
         # 3. Evaluate on testing
         y_pred = self.sklearn_model.predict(X_test)
+        # 3A. ROC/AUC
+        self.generate_roc_auc_curve(y_test, y_pred)
         # 4. Return evaluation result
         return classification_report(y_test, y_pred)
         # score = self.sklearn_model.score(X_test, y_test)
@@ -113,3 +116,18 @@ class Model:
             return a - b
         elif self.mode == 'concat':
             return a.concat(b)
+
+    def generate_roc_auc_curve(self, y_true, y_pred):
+        lw = 2
+        fpr, tpr, _ = roc_curve(y_true, y_pred)
+        roc_auc = auc(fpr, tpr)
+        plt.plot(fpr, tpr, color='darkorange',
+                 lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'Receiver operating characteristic of model {self.name}')
+        plt.legend(loc="lower right")
+        plt.show()
